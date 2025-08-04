@@ -1,3 +1,4 @@
 # No venv, but still good to ignore cache files
 __pycache__/
 *.pyc
+uploads/
