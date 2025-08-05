@@ -21,6 +21,49 @@ def index():
     """Renders the main upload page."""
     return render_template('index.html')
 
+
+import csv
+
+@app.route('/mappings')
+def sku_mappings():
+    """Renders the page for managing SKU mappings."""
+    mappings = []
+    with open('wms_mapping.csv', mode='r') as infile:
+        reader = csv.reader(infile)
+        next(reader)  # Skip header
+        for row in reader:
+            mappings.append({'sku': row[0], 'msku': row[1]})
+    return render_template('mappings.html', mappings=mappings)
+
+
+@app.route('/add_mapping', methods=['POST'])
+def add_mapping():
+    """Adds a new SKU to MSKU mapping."""
+    sku = request.form['sku']
+    msku = request.form['msku']
+    with open('wms_mapping.csv', mode='a', newline='') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow([sku, msku])
+    return redirect(url_for('sku_mappings'))
+
+
+@app.route('/delete_mapping', methods=['POST'])
+def delete_mapping():
+    """Deletes an SKU to MSKU mapping."""
+    sku_to_delete = request.form['sku']
+    rows = []
+    with open('wms_mapping.csv', 'r', newline='') as infile:
+        reader = csv.reader(infile)
+        rows = list(reader)
+
+    with open('wms_mapping.csv', 'w', newline='') as outfile:
+        writer = csv.writer(outfile)
+        for row in rows:
+            if row[0] != sku_to_delete:
+                writer.writerow(row)
+
+    return redirect(url_for('sku_mappings'))
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handles the file upload and processing."""
@@ -56,10 +99,14 @@ def upload_file():
         if not save_success:
             return f"Error saving processed file: {save_message}"
 
-        # --- Database Loading Placeholder ---
-        # In a real application, this is where you would call the database loading logic.
-        # from load_data import load_data_to_teable
-        # print("Placeholder: Would now call load_data_to_teable(...)")
+        # --- Database Loading ---
+        from load_data import load_data_to_teable
+        # Check if Teable credentials are configured
+        if os.environ.get("TEABLE_API_TOKEN") and os.environ.get("TEABLE_BASE_ID"):
+            print("Attempting to load data to Teable.io...")
+            load_data_to_teable(processed_filepath)
+        else:
+            print("Skipping Teable.io data load: TEABLE_API_TOKEN or TEABLE_BASE_ID not set.")
 
         # Render a results page
         return render_template('results.html',

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKU Mappings</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+<body>
+    <header>
+        <h1>SKU Mappings</h1>
+        <p>Manage your SKU to MSKU mappings.</p>
+        <nav>
+            <a href="/">Home</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Add New Mapping</h2>
+        <form action="/add_mapping" method="post">
+            <label for="sku">SKU:</label>
+            <input type="text" id="sku" name="sku" required>
+            <label for="msku">MSKU:</label>
+            <input type="text" id="msku" name="msku" required>
+            <button type="submit">Add Mapping</button>
+        </form>
+
+        <h2>Existing Mappings</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>MSKU</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mapping in mappings %}
+                <tr>
+                    <td>{{ mapping.sku }}</td>
+                    <td>{{ mapping.msku }}</td>
+                    <td>
+                        <form action="/delete_mapping" method="post" style="display:inline;">
+                            <input type="hidden" name="sku" value="{{ mapping.sku }}">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>
